@@ -7,7 +7,7 @@ version = "{{ .Version }}"
 homepage = "https://github.com/paketo-buildpacks/dotnet-core-build"
 
 [metadata]
-include_files = ["bin/build","bin/detect","buildpack.toml","go.mod","go.sum"]
+include_files = ["bin/build","bin/detect", "bin/run", "buildpack.toml","go.mod","go.sum"]
 pre_package = "./scripts/build.sh"
 
 [[stacks]]

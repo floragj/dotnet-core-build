@@ -31,26 +31,13 @@ const (
 )
 
 func Package(root, version string, cached bool) (string, error) {
-	var cmd *exec.Cmd
-
-	bpPath := filepath.Join(root, "artifact")
-	if cached {
-		cmd = exec.Command(".bin/packager", "--archive", "--version", version, fmt.Sprintf("%s-cached", bpPath))
-	} else {
-		cmd = exec.Command(".bin/packager", "--archive", "--uncached", "--version", version, bpPath)
-	}
-
-	cmd.Env = append(os.Environ(), fmt.Sprintf("PACKAGE_DIR=%s", bpPath))
+	cmd := exec.Command("./scripts/package.sh", "--version", version)
 	cmd.Dir = root
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 
-	if cached {
-		return fmt.Sprintf("%s-cached.tgz", bpPath), err
-	}
-
-	return fmt.Sprintf("%s.tgz", bpPath), err
+	return filepath.Join(bpDir, "build", "buildpack.tgz"), err
 }
 
 func BeforeSuite() {
@@ -119,12 +106,13 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 		Expect(app.Destroy()).To(Succeed())
 	})
 
-	it("should build a working OCI image for a simple 2.1 app with aspnet dependencies", func() {
+	it.Focus("should build a working OCI image for a simple 2.1 app with aspnet dependencies", func() {
 		app, err = dagger.NewPack(
 			filepath.Join("testdata", "source-2.1-aspnet"),
 			dagger.RandomImage(),
 			dagger.SetBuildpacks(bpList...),
 			dagger.SetBuilder(builder),
+			dagger.SetVerbose(),
 		).Build()
 		Expect(err).ToNot(HaveOccurred())
 
