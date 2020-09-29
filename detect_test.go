@@ -32,7 +32,7 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		Expect(ioutil.WriteFile(filepath.Join(workingDir, "app.xsproj"), nil, 0600)).To(Succeed())
 
 		versionParser = &fakes.VersionParser{}
-		versionParser.ParseVersionCall.Returns.Version = "some-version"
+		versionParser.ParseVersionCall.Returns.Version = "1.2.3"
 		detect = dotnetpublish.Detect(versionParser)
 	})
 
@@ -60,14 +60,15 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 					{
 						Name: "dotnet-sdk",
 						Metadata: dotnetpublish.BuildPlanMetadata{
-							Build:  true,
-							Launch: true,
+							Version: "1.2.0",
+							Build:   true,
+							Launch:  true,
 						},
 					},
 					{
 						Name: "dotnet-runtime",
 						Metadata: dotnetpublish.BuildPlanMetadata{
-							Version: "some-version",
+							Version: "1.2.3",
 							Build:   true,
 							Launch:  true,
 						},
@@ -102,14 +103,15 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 						{
 							Name: "dotnet-sdk",
 							Metadata: dotnetpublish.BuildPlanMetadata{
-								Build:  true,
-								Launch: true,
+								Version: "1.2.0",
+								Build:   true,
+								Launch:  true,
 							},
 						},
 						{
 							Name: "dotnet-runtime",
 							Metadata: dotnetpublish.BuildPlanMetadata{
-								Version: "some-version",
+								Version: "1.2.3",
 								Build:   true,
 								Launch:  true,
 							},
@@ -117,7 +119,7 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 						{
 							Name: "dotnet-aspnetcore",
 							Metadata: dotnetpublish.BuildPlanMetadata{
-								Version: "some-version",
+								Version: "1.2.3",
 								Build:   true,
 								Launch:  true,
 							},

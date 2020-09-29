@@ -1,10 +1,11 @@
 package dotnetpublish
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/paketo-buildpacks/packit/fs"
 )
 
 type DotnetRootManager struct{}
@@ -14,15 +15,6 @@ func NewDotnetRootManager() DotnetRootManager {
 }
 
 func (m DotnetRootManager) Setup(existingRoot, sdkLocation string) (string, error) {
-	fmt.Println("Existing $DOTNET_ROOT")
-	err := filepath.Walk(existingRoot, func(path string, info os.FileInfo, err error) error {
-		fmt.Println(path)
-		return err
-	})
-	if err != nil {
-		panic(err)
-	}
-
 	root, err := ioutil.TempDir("", "dotnet-root")
 	if err != nil {
 		panic(err)
@@ -56,21 +48,14 @@ func (m DotnetRootManager) Setup(existingRoot, sdkLocation string) (string, erro
 		panic(err)
 	}
 
-	err = os.Symlink(filepath.Join(existingRoot, "dotnet"), filepath.Join(root, "dotnet"))
+	// NOTE: the dotnet CLI uses relative pathing that means we must copy it into
+	// the final DOTNET_ROOT so that it can find SDKs.
+	err = fs.Copy(filepath.Join(existingRoot, "dotnet"), filepath.Join(root, "dotnet"))
 	if err != nil {
 		panic(err)
 	}
 
-	err = os.Symlink(sdkLocation, filepath.Join(root, "sdk"))
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("New $DOTNET_ROOT")
-	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		fmt.Println(path)
-		return err
-	})
+	err = os.Symlink(filepath.Join(sdkLocation, "sdk"), filepath.Join(root, "sdk"))
 	if err != nil {
 		panic(err)
 	}

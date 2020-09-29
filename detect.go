@@ -2,6 +2,7 @@ package dotnetpublish
 
 import (
 	"path/filepath"
+	"strings"
 
 	"github.com/paketo-buildpacks/packit"
 )
@@ -30,11 +31,16 @@ func Detect(parser VersionParser) packit.DetectFunc {
 		}
 
 		projectFilePath := matches[0]
-
-		dotnetRuntimeVersion, err := parser.ParseVersion(projectFilePath)
+		runtimeVersion, err := parser.ParseVersion(projectFilePath)
 		if err != nil {
 			return packit.DetectResult{}, err
 		}
+
+		parts := strings.Split(runtimeVersion, ".")
+		if len(parts) < 2 {
+			panic("invalid version")
+		}
+		sdkVersion := strings.Join([]string{parts[0], parts[1], "0"}, ".")
 
 		requirements := []packit.BuildPlanRequirement{
 			{
@@ -46,14 +52,15 @@ func Detect(parser VersionParser) packit.DetectFunc {
 			{
 				Name: "dotnet-sdk",
 				Metadata: BuildPlanMetadata{
-					Build:  true,
-					Launch: true,
+					Version: sdkVersion,
+					Build:   true,
+					Launch:  true,
 				},
 			},
 			{
 				Name: "dotnet-runtime",
 				Metadata: BuildPlanMetadata{
-					Version: dotnetRuntimeVersion,
+					Version: runtimeVersion,
 					Build:   true,
 					Launch:  true,
 				},
@@ -64,7 +71,7 @@ func Detect(parser VersionParser) packit.DetectFunc {
 			requirements = append(requirements, packit.BuildPlanRequirement{
 				Name: "dotnet-aspnetcore",
 				Metadata: BuildPlanMetadata{
-					Version: dotnetRuntimeVersion,
+					Version: runtimeVersion,
 					Build:   true,
 					Launch:  true,
 				},

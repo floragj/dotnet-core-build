@@ -1,7 +1,6 @@
 package dotnetpublish
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/paketo-buildpacks/packit"
@@ -19,11 +18,6 @@ type PublishProcess interface {
 
 func Build(rootManager RootManager, publishProcess PublishProcess) packit.BuildFunc {
 	return func(context packit.BuildContext) (packit.BuildResult, error) {
-		fmt.Println("Environment:")
-		for _, variable := range os.Environ() {
-			fmt.Printf("  %s\n", variable)
-		}
-
 		root, err := rootManager.Setup(os.Getenv("DOTNET_ROOT"), os.Getenv("SDK_LOCATION"))
 		if err != nil {
 			panic(err)
