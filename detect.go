@@ -1,6 +1,8 @@
 package dotnetpublish
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -22,9 +24,27 @@ type ProjectParser interface {
 	NPMIsRequired(path string) bool
 }
 
-func Detect(parser ProjectParser) packit.DetectFunc {
+//go:generate faux --interface YMLParser --output fakes/yml_parser.go
+type YMLParser interface {
+	ParseProjectPath(path string) (projectFilePath string, err error)
+}
+
+func Detect(parser ProjectParser, ymlParser YMLParser) packit.DetectFunc {
 	return func(context packit.DetectContext) (packit.DetectResult, error) {
-		matches, err := filepath.Glob(filepath.Join(context.WorkingDir, "*.?sproj"))
+		var projectPath string
+		_, err := os.Stat(filepath.Join(context.WorkingDir, "buildpack.yml"))
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return packit.DetectResult{}, err
+			}
+		} else {
+			projectPath, err = ymlParser.ParseProjectPath(filepath.Join(context.WorkingDir, "buildpack.yml"))
+			if err != nil {
+				return packit.DetectResult{}, fmt.Errorf("failed to parse buildpack.yml: %w", err)
+			}
+		}
+
+		matches, err := filepath.Glob(filepath.Join(context.WorkingDir, projectPath, "*.?sproj"))
 		if err != nil {
 			return packit.DetectResult{}, err
 		}
@@ -41,7 +61,7 @@ func Detect(parser ProjectParser) packit.DetectFunc {
 
 		parts := strings.Split(runtimeVersion, ".")
 		if len(parts) < 2 {
-			panic("invalid version")
+			panic("invalid version") // this replicates original buildpack behaviour
 		}
 		sdkVersion := strings.Join([]string{parts[0], parts[1], "0"}, ".")
 
@@ -50,6 +70,7 @@ func Detect(parser ProjectParser) packit.DetectFunc {
 				Name: "build",
 				Metadata: BuildPlanMetadata{
 					Build: true,
+					// TODO: pass the project path here so we can grab it for build
 				},
 			},
 			{

@@ -10,6 +10,7 @@ func main() {
 	packit.Run(
 		dotnetpublish.Detect(
 			dotnetpublish.NewProjectFileParser(),
+			dotnetpublish.NewBuildpackYMLParser(),
 		),
 		dotnetpublish.Build(
 			dotnetpublish.NewDotnetRootManager(),
