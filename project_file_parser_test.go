@@ -114,9 +114,6 @@ func testProjectFileParser(t *testing.T, context spec.G, it spec.S) {
 			Expect(err).NotTo(HaveOccurred())
 			defer file.Close()
 
-			_, err = file.WriteString(`<Project Sdk="Microsoft.NET.Sdk.Web"></Project>`)
-			Expect(err).NotTo(HaveOccurred())
-
 			path = file.Name()
 		})
 
@@ -125,8 +122,149 @@ func testProjectFileParser(t *testing.T, context spec.G, it spec.S) {
 		})
 
 		context("when project SDK is Microsoft.NET.Sdk.Web", func() {
-			it("reports if the application requires ASP.Net", func() {
+			it.Before(func() {
+				Expect(ioutil.WriteFile(path, []byte(`<Project Sdk="Microsoft.NET.Sdk.Web"></Project>`), 0600)).To(Succeed())
+			})
+
+			it("returns true", func() {
 				Expect(parser.ASPNetIsRequired(path)).To(BeTrue())
+			})
+		})
+
+		context("when project SDK is NOT Microsoft.NET.Sdk.Web", func() {
+			it.Before(func() {
+				Expect(ioutil.WriteFile(path, []byte(`<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop"></Project>`), 0600)).To(Succeed())
+			})
+
+			it("returns false", func() {
+				Expect(parser.ASPNetIsRequired(path)).To(BeFalse())
+			})
+		})
+	})
+
+	context("NodeIsRequired", func() {
+		var path string
+
+		it.Before(func() {
+			file, err := ioutil.TempFile("", "app.csproj")
+			Expect(err).NotTo(HaveOccurred())
+			defer file.Close()
+
+			path = file.Name()
+		})
+
+		it.After(func() {
+			Expect(os.Remove(path)).To(Succeed())
+		})
+
+		context("when project includes target commands that invoke node", func() {
+			it.Before(func() {
+				Expect(ioutil.WriteFile(path, []byte(`
+					<Project>
+						<Target Name="first-target">
+							<Exec Command="echo hello" />
+						</Target>
+						<Target Name="second-target">
+							<Exec Command="node --version" />
+						</Target>
+					</Project>
+				`), 0600)).To(Succeed())
+			})
+
+			it("returns true", func() {
+				Expect(parser.NodeIsRequired(path)).To(BeTrue())
+			})
+		})
+
+		context("when project does NOT include target commands that invoke node", func() {
+			it.Before(func() {
+				Expect(ioutil.WriteFile(path, []byte(`
+					<Project>
+						<Target Name="first-target">
+							<Exec Command="echo hello" />
+						</Target>
+						<Target Name="second-target">
+							<Exec Command="echo goodbye" />
+						</Target>
+					</Project>
+				`), 0600)).To(Succeed())
+			})
+
+			it("returns false", func() {
+				Expect(parser.NodeIsRequired(path)).To(BeFalse())
+			})
+		})
+
+		context("when project includes target commands that invoke npm", func() {
+			it.Before(func() {
+				Expect(ioutil.WriteFile(path, []byte(`
+					<Project>
+						<Target Name="first-target">
+							<Exec Command="echo hello" />
+						</Target>
+						<Target Name="second-target">
+							<Exec Command="npm install" />
+						</Target>
+					</Project>
+				`), 0600)).To(Succeed())
+			})
+
+			it("returns true", func() {
+				Expect(parser.NodeIsRequired(path)).To(BeTrue())
+			})
+		})
+	})
+
+	context("NPMIsRequired", func() {
+		var path string
+
+		it.Before(func() {
+			file, err := ioutil.TempFile("", "app.csproj")
+			Expect(err).NotTo(HaveOccurred())
+			defer file.Close()
+
+			path = file.Name()
+		})
+
+		it.After(func() {
+			Expect(os.Remove(path)).To(Succeed())
+		})
+
+		context("when project includes target commands that invoke npm", func() {
+			it.Before(func() {
+				Expect(ioutil.WriteFile(path, []byte(`
+					<Project>
+						<Target Name="first-target">
+							<Exec Command="echo hello" />
+						</Target>
+						<Target Name="second-target">
+							<Exec Command="npm install" />
+						</Target>
+					</Project>
+				`), 0600)).To(Succeed())
+			})
+
+			it("returns true", func() {
+				Expect(parser.NPMIsRequired(path)).To(BeTrue())
+			})
+		})
+
+		context("when project does NOT include target commands that invoke node", func() {
+			it.Before(func() {
+				Expect(ioutil.WriteFile(path, []byte(`
+					<Project>
+						<Target Name="first-target">
+							<Exec Command="echo hello" />
+						</Target>
+						<Target Name="second-target">
+							<Exec Command="echo goodbye" />
+						</Target>
+					</Project>
+				`), 0600)).To(Succeed())
+			})
+
+			it("returns false", func() {
+				Expect(parser.NPMIsRequired(path)).To(BeFalse())
 			})
 		})
 	})

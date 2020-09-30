@@ -66,3 +66,67 @@ func (p ProjectFileParser) ASPNetIsRequired(path string) bool {
 
 	return project.SDK == "Microsoft.NET.Sdk.Web"
 }
+
+func (p ProjectFileParser) NodeIsRequired(path string) bool {
+	file, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	var project struct {
+		Targets []struct {
+			Execs []struct {
+				Command string `xml:",attr"`
+			} `xml:"Exec"`
+		} `xml:"Target"`
+	}
+
+	err = xml.NewDecoder(file).Decode(&project)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, target := range project.Targets {
+		for _, exec := range target.Execs {
+			if strings.HasPrefix(exec.Command, "node ") {
+				return true
+			}
+		}
+	}
+
+	// NOTE: if node is not directly invoked, but npm is, then node is still
+	// required, so we need to check here too
+	return p.NPMIsRequired(path)
+}
+
+func (p ProjectFileParser) NPMIsRequired(path string) bool {
+	file, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	var project struct {
+		Targets []struct {
+			Execs []struct {
+				Command string `xml:",attr"`
+			} `xml:"Exec"`
+		} `xml:"Target"`
+	}
+
+	err = xml.NewDecoder(file).Decode(&project)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, target := range project.Targets {
+		for _, exec := range target.Execs {
+			if strings.HasPrefix(exec.Command, "npm ") {
+				return true
+			}
+		}
+	}
+
+	return false
+}

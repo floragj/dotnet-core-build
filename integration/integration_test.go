@@ -106,7 +106,7 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 		Expect(app.Destroy()).To(Succeed())
 	})
 
-	it.Focus("should build a working OCI image for a simple 2.1 app with aspnet dependencies", func() {
+	it("should build a working OCI image for a simple 2.1 app with aspnet dependencies", func() {
 		app, err = dagger.NewPack(
 			filepath.Join("testdata", "source-2.1-aspnet"),
 			dagger.RandomImage(),
@@ -177,7 +177,7 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 		}
 	})
 
-	it("should build a working OCI image for an app that specifies it should be self contained", func() {
+	it.Pend("should build a working OCI image for an app that specifies it should be self contained", func() {
 		app, err = dagger.NewPack(
 			filepath.Join("testdata", "self_contained_msbuild"),
 			dagger.RandomImage(),
@@ -198,7 +198,7 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 		}).Should(ContainSubstring("Hello World!"))
 	})
 
-	it("should build a working OCI image for a console app", func() {
+	it.Pend("should build a working OCI image for a console app", func() {
 		app, err = dagger.NewPack(
 			filepath.Join("testdata", "console_app"),
 			dagger.RandomImage(),
@@ -216,7 +216,7 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 		}).Should(ContainSubstring("Hello World!"))
 	})
 
-	it("should build a working OCI image for a fsharp application", func() {
+	it.Pend("should build a working OCI image for a fsharp application", func() {
 		app, err = dagger.NewPack(
 			filepath.Join("testdata", "fsharp_msbuild"),
 			dagger.RandomImage(),
@@ -246,7 +246,7 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 	// The Build CNB should either be able to support
 	//	1. *.sln files for build (or)
 	//	2. Build all csproj refereneced as a project in the root or entry point csproj
-	it("should build a working OCI image for an with multiple project files", func() {
+	it.Pend("should build a working OCI image for an with multiple project files", func() {
 		app, err = dagger.NewPack(
 			filepath.Join("testdata", "multiple_projects_msbuild"),
 			dagger.RandomImage(),
@@ -267,7 +267,7 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 		}).Should(ContainSubstring("Hello, I'm a string!"))
 	})
 
-	it("should build a working OCI image for a nancy kestrel msbuild application", func() {
+	it.Pend("should build a working OCI image for a nancy kestrel msbuild application", func() {
 		app, err = dagger.NewPack(
 			filepath.Join("testdata", "nancy_kestrel_msbuild_dotnet2"),
 			dagger.RandomImage(),
@@ -290,7 +290,7 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 		}).Should(ContainSubstring("Hello from Nancy running on CoreCLR"))
 	})
 
-	it("should build a working OCI image for a source_2.1_explicit_runtime_templated application", func() {
+	it.Pend("should build a working OCI image for a source_2.1_explicit_runtime_templated application", func() {
 		majorMinor := "2.1"
 		version, err := GetLowestRuntimeVersionInMajorMinor(majorMinor, filepath.Join(runtimeURI, "buildpack.toml"))
 		Expect(err).ToNot(HaveOccurred())
@@ -335,7 +335,7 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 		}).Should(ContainSubstring("netcoreapp2"))
 	})
 
-	it("should build a working OCI image for a source_2.1_float_runtime application", func() {
+	it.Pend("should build a working OCI image for a source_2.1_float_runtime application", func() {
 		app, err = dagger.NewPack(
 			filepath.Join("testdata", "source_2.1_float_runtime"),
 			dagger.RandomImage(),
@@ -357,7 +357,7 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 		}).Should(ContainSubstring("netcoreapp2"))
 	})
 
-	it("should build a working OCI image for a source_3_1_app application", func() {
+	it.Pend("should build a working OCI image for a source_3_1_app application", func() {
 		app, err = dagger.NewPack(
 			filepath.Join("testdata", "source_3_1_app"),
 			dagger.RandomImage(),
@@ -378,7 +378,7 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 		}).Should(ContainSubstring("simple_3_0_app"))
 	})
 
-	it("should build a working OCI image for a source_aspnetcore_all_2.1 application", func() {
+	it.Pend("should build a working OCI image for a source_aspnetcore_all_2.1 application", func() {
 		app, err = dagger.NewPack(
 			filepath.Join("testdata", "source_aspnetcore_all_2.1"),
 			dagger.RandomImage(),
@@ -399,7 +399,7 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 		}).Should(ContainSubstring("netcoreapp2"))
 	})
 
-	it("should build a working OCI image for a source_aspnetcore_app_2.1 application", func() {
+	it.Pend("should build a working OCI image for a source_aspnetcore_app_2.1 application", func() {
 		app, err = dagger.NewPack(
 			filepath.Join("testdata", "source_aspnetcore_app_2.1"),
 			dagger.RandomImage(),
@@ -421,7 +421,7 @@ func testIntegration(t *testing.T, _ spec.G, it spec.S) {
 		}).Should(ContainSubstring("Hello World!"))
 	})
 
-	it("should build a working OCI image for a source_steeltoe_3.1 application", func() {
+	it.Pend("should build a working OCI image for a source_steeltoe_3.1 application", func() {
 		app, err = dagger.NewPack(
 			filepath.Join("testdata", "source_steeltoe_3.1"),
 			dagger.RandomImage(),

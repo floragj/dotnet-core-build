@@ -19,7 +19,7 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
-		versionParser *fakes.VersionParser
+		projectParser *fakes.ProjectParser
 		workingDir    string
 		detect        packit.DetectFunc
 	)
@@ -31,9 +31,10 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 
 		Expect(ioutil.WriteFile(filepath.Join(workingDir, "app.xsproj"), nil, 0600)).To(Succeed())
 
-		versionParser = &fakes.VersionParser{}
-		versionParser.ParseVersionCall.Returns.Version = "1.2.3"
-		detect = dotnetpublish.Detect(versionParser)
+		projectParser = &fakes.ProjectParser{}
+		projectParser.ParseVersionCall.Returns.Version = "1.2.3"
+
+		detect = dotnetpublish.Detect(projectParser)
 	})
 
 	it.After(func() {
@@ -80,7 +81,7 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 
 	context("when aspnet is required", func() {
 		it.Before(func() {
-			versionParser.ASPNetIsRequiredCall.Returns.Bool = true
+			projectParser.ASPNetIsRequiredCall.Returns.Bool = true
 		})
 
 		it("requires aspnet in the build plan", func() {
@@ -130,6 +131,116 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 		})
 	})
 
+	context("when node is required", func() {
+		it.Before(func() {
+			projectParser.NodeIsRequiredCall.Returns.Bool = true
+		})
+
+		it("requires node in the build plan", func() {
+			result, err := detect(packit.DetectContext{
+				WorkingDir: workingDir,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal(packit.DetectResult{
+				Plan: packit.BuildPlan{
+					Provides: []packit.BuildPlanProvision{
+						{Name: "build"},
+					},
+					Requires: []packit.BuildPlanRequirement{
+						{
+							Name: "build",
+							Metadata: dotnetpublish.BuildPlanMetadata{
+								Build: true,
+							},
+						},
+						{
+							Name: "dotnet-sdk",
+							Metadata: dotnetpublish.BuildPlanMetadata{
+								Version: "1.2.0",
+								Build:   true,
+								Launch:  true,
+							},
+						},
+						{
+							Name: "dotnet-runtime",
+							Metadata: dotnetpublish.BuildPlanMetadata{
+								Version: "1.2.3",
+								Build:   true,
+								Launch:  true,
+							},
+						},
+						{
+							Name: "node",
+							Metadata: dotnetpublish.BuildPlanMetadata{
+								Build:  true,
+								Launch: true,
+							},
+						},
+					},
+				},
+			}))
+		})
+	})
+
+	context("when npm is required", func() {
+		it.Before(func() {
+			projectParser.NodeIsRequiredCall.Returns.Bool = true
+			projectParser.NPMIsRequiredCall.Returns.Bool = true
+		})
+
+		it("requires node in the build plan", func() {
+			result, err := detect(packit.DetectContext{
+				WorkingDir: workingDir,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal(packit.DetectResult{
+				Plan: packit.BuildPlan{
+					Provides: []packit.BuildPlanProvision{
+						{Name: "build"},
+					},
+					Requires: []packit.BuildPlanRequirement{
+						{
+							Name: "build",
+							Metadata: dotnetpublish.BuildPlanMetadata{
+								Build: true,
+							},
+						},
+						{
+							Name: "dotnet-sdk",
+							Metadata: dotnetpublish.BuildPlanMetadata{
+								Version: "1.2.0",
+								Build:   true,
+								Launch:  true,
+							},
+						},
+						{
+							Name: "dotnet-runtime",
+							Metadata: dotnetpublish.BuildPlanMetadata{
+								Version: "1.2.3",
+								Build:   true,
+								Launch:  true,
+							},
+						},
+						{
+							Name: "node",
+							Metadata: dotnetpublish.BuildPlanMetadata{
+								Build:  true,
+								Launch: true,
+							},
+						},
+						{
+							Name: "npm",
+							Metadata: dotnetpublish.BuildPlanMetadata{
+								Build:  true,
+								Launch: true,
+							},
+						},
+					},
+				},
+			}))
+		})
+	})
+
 	context("failure cases", func() {
 		context("when a project file cannot be found", func() {
 			it.Before(func() {
@@ -146,7 +257,7 @@ func testDetect(t *testing.T, context spec.G, it spec.S) {
 
 		context("when .?proj file cannot be parsed", func() {
 			it.Before(func() {
-				versionParser.ParseVersionCall.Returns.Err = errors.New("failed to parse project file version")
+				projectParser.ParseVersionCall.Returns.Err = errors.New("failed to parse project file version")
 			})
 
 			it("returns an error", func() {

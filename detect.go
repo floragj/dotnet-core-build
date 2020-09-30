@@ -8,18 +8,21 @@ import (
 )
 
 type BuildPlanMetadata struct {
-	Version string `toml:"version"`
+	Version string `toml:"version,omitempty"`
 	Build   bool   `toml:"build"`
 	Launch  bool   `toml:"launch"`
 }
 
-//go:generate faux --interface VersionParser --output fakes/version_parser.go
-type VersionParser interface {
+//go:generate faux --interface ProjectParser --output fakes/project_parser.go
+type ProjectParser interface {
 	ParseVersion(path string) (version string, err error)
+
 	ASPNetIsRequired(path string) bool
+	NodeIsRequired(path string) bool
+	NPMIsRequired(path string) bool
 }
 
-func Detect(parser VersionParser) packit.DetectFunc {
+func Detect(parser ProjectParser) packit.DetectFunc {
 	return func(context packit.DetectContext) (packit.DetectResult, error) {
 		matches, err := filepath.Glob(filepath.Join(context.WorkingDir, "*.?sproj"))
 		if err != nil {
@@ -74,6 +77,26 @@ func Detect(parser VersionParser) packit.DetectFunc {
 					Version: runtimeVersion,
 					Build:   true,
 					Launch:  true,
+				},
+			})
+		}
+
+		if parser.NodeIsRequired(projectFilePath) {
+			requirements = append(requirements, packit.BuildPlanRequirement{
+				Name: "node",
+				Metadata: BuildPlanMetadata{
+					Build:  true,
+					Launch: true,
+				},
+			})
+		}
+
+		if parser.NPMIsRequired(projectFilePath) {
+			requirements = append(requirements, packit.BuildPlanRequirement{
+				Name: "npm",
+				Metadata: BuildPlanMetadata{
+					Build:  true,
+					Launch: true,
 				},
 			})
 		}

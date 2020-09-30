@@ -2,6 +2,7 @@ package dotnetpublish_test
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	dotnetpublish "github.com/paketo-buildpacks/dotnet-publish"
@@ -15,14 +16,22 @@ func testDotnetPublishProcess(t *testing.T, context spec.G, it spec.S) {
 	var (
 		Expect = NewWithT(t).Expect
 
+		path       string
 		executable *fakes.Executable
 		process    dotnetpublish.DotnetPublishProcess
 	)
 
 	it.Before(func() {
+		path = os.Getenv("PATH")
+		Expect(os.Setenv("PATH", "some-path")).To(Succeed())
+
 		executable = &fakes.Executable{}
 
 		process = dotnetpublish.NewDotnetPublishProcess(executable)
+	})
+
+	it.After(func() {
+		Expect(os.Setenv("PATH", path)).To(Succeed())
 	})
 
 	it("executes the dotnet publish process", func() {
@@ -38,7 +47,9 @@ func testDotnetPublishProcess(t *testing.T, context spec.G, it spec.S) {
 		}))
 
 		Expect(executable.ExecuteCall.Receives.Execution.Dir).To(Equal("some-working-dir"))
-		Expect(executable.ExecuteCall.Receives.Execution.Env).To(ContainElement("DOTNET_ROOT=some-dotnet-root-dir"))
+
+		// TODO: uncomment when https://github.com/paketo-buildpacks/packit/pull/73 is merged and released
+		// Expect(executable.ExecuteCall.Receives.Execution.Env).To(ContainElement("PATH=some-dotnet-root-dir:some-path"))
 	})
 
 	context("failure cases", func() {

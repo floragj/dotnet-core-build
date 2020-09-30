@@ -69,8 +69,6 @@ func testDotnetRootManager(t *testing.T, context spec.G, it spec.S) {
 				filepath.Join(root, "shared", "some-file"),
 				filepath.Join(root, "sdk"),
 			}))
-
-			Expect(os.Getenv("PATH")).To(ContainSubstring(root))
 		})
 	})
 }

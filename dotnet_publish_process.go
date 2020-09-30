@@ -22,28 +22,10 @@ func NewDotnetPublishProcess(executable Executable) DotnetPublishProcess {
 }
 
 func (p DotnetPublishProcess) Execute(workingDir, root string) error {
-	// TODO: figure out why this isn't working
-	// var env []string
-	// for _, variable := range os.Environ() {
-	// 	if !strings.HasPrefix(variable, "PATH=") {
-	// 		env = append(env, variable)
-	// 	}
-	// }
-	// env = append(env, fmt.Sprintf("PATH=%s:%s", root, os.Getenv("PATH")))
-
+	// TODO: remove when https://github.com/paketo-buildpacks/packit/pull/73 is merged and released
 	os.Setenv("PATH", fmt.Sprintf("%s:%s", root, os.Getenv("PATH")))
 
 	err := p.executable.Execute(pexec.Execution{
-		Args:   []string{"--info"},
-		Dir:    workingDir,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	err = p.executable.Execute(pexec.Execution{
 		Args: []string{
 			"publish", workingDir,
 			"--configuration", "Release",
@@ -52,6 +34,9 @@ func (p DotnetPublishProcess) Execute(workingDir, root string) error {
 			"--output", workingDir,
 		},
 		Dir: workingDir,
+
+		// TODO: uncomment when https://github.com/paketo-buildpacks/packit/pull/73 is merged and released
+		// Env: append(os.Environ(), fmt.Sprintf("PATH=%s:%s", root, os.Getenv("PATH"))),
 
 		// TODO: remove, as these are only for debugging
 		Stdout: os.Stdout,
